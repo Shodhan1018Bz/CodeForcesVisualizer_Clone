@@ -6,7 +6,7 @@ import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
 import Piechart from "./pages/piechart";
 import Barchart from "./pages/barcharts";
-import { ThemeProvider } from "react-bootstrap";
+import Table from './pages/tables'
 
 function App() {
   const [programmingLanguagesKnown, setprogrammingLanguagesKnown] = useState<any>([]);
@@ -15,9 +15,43 @@ function App() {
   const[tags,setTags]=useState([]);
   const[levels,setLevels]=useState([]);
   const[rating,setRating]=useState([]);
+  const[numberofContestsAttended,setNumberofContestsAttended]=useState(0);
+  const[bestRank,setBestRank]=useState(0);
+  const[worstRank,setWorstRank]=useState(0);
+  const[maxUp,setMaxUp]=useState(0);
+  const[maxDown,setMaxDown]=useState(0);
 
   //Fetching the data from API
-  const fetchApi = () => {
+  const fetchApiFromUserStatus = () => {
+    // Fetching the from user.rating API
+    Axios.get("https://codeforces.com/api/user.rating?handle="+handle)
+      .then((res)=>{
+        // console.log(res.data);
+        let resultLength=res.data.result.length;
+        let maxRank=res.data.result[0].rank;
+        let minRank=res.data.result[0].rank;
+        let up=res.data.result[0].newRating;
+        let down=res.data.result[0].newRating;
+        
+        setNumberofContestsAttended(resultLength);
+        for(let i=1;i<resultLength;i++){
+            maxRank=Math.max(maxRank,res.data.result[i].rank);
+            minRank=Math.min(minRank,res.data.result[i].rank);
+            up=Math.max(up,res.data.result[i].newRating-res.data.result[i].oldRating);
+            down=Math.min(down,res.data.result[i].newRating-res.data.result[i].oldRating);
+        }
+        setBestRank(maxRank);
+        setWorstRank(minRank);
+        setMaxDown(down);
+        setMaxUp(up);
+        // console.log(minRank);
+
+      })
+      .catch((err)=>console.error(err))
+    
+
+
+    // Fetching the from user.status API
     Axios.get("https://codeforces.com/api/user.status?handle="+handle).then((res) => {
 
       let resultLength=res.data.result.length;
@@ -35,6 +69,8 @@ function App() {
         ratingArray=[...ratingArray,res.data.result[i].problem.rating];
 
       }
+
+
       function fetchData(data:any):any{
       const dataMap = data.reduce((accumualtor:any, entry:any) => accumualtor.set(entry, (accumualtor.get(entry) || 0) + 1), new Map());
       let tmp=[{}];
@@ -90,6 +126,12 @@ function App() {
       {}
     });
   };
+
+  
+  
+
+
+
   if(!handle){
     return <>
     <NavBar/>
@@ -97,7 +139,7 @@ function App() {
     
     <Form>
       <Form.Control type="text" onChange={(e) => setHandle(e.target.value)} placeholder="Enter Codeforces Handle" />
-      <Button variant="primary" onClick={fetchApi} className="submit">Submit</Button>
+      <Button variant="primary" onClick={()=>{fetchApiFromUserStatus;}} className="submit">Submit</Button>
     </Form>
     </div></>;
   }
@@ -110,7 +152,7 @@ function App() {
     
     <Form>
       <Form.Control type="text" onChange={(e) => setHandle(e.target.value)} placeholder="Enter Codeforces Handle" />
-      <Button variant="primary" onClick={fetchApi} className="submit">Submit</Button>
+      <Button variant="primary" onClick={fetchApiFromUserStatus} className="submit">Submit</Button>
     </Form>
     </div>
     {/* {DisPlaying The PieCharts} */}
@@ -142,8 +184,13 @@ function App() {
         <Barchart label={"Problem ratings of"} handle={handle} data={rating}/>
         </div>
     </div>
+    <div className="d-flex justify-content-around">
+    <Table H1={"Contests of"} handle={handle} r2l={"Number of Contests"} r2r={numberofContestsAttended} r3l={"Best rank"} r3r={bestRank} r4l={"Worst rank"} r4r={worstRank} r5l={"Max Up"} r5r={maxUp} r6l={"Max Down"} r6r={maxDown} />
+    </div>
+    
     </>
   );
 }
+
 
 export default App;
