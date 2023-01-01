@@ -20,6 +20,12 @@ function App() {
   const[worstRank,setWorstRank]=useState(0);
   const[maxUp,setMaxUp]=useState(0);
   const[maxDown,setMaxDown]=useState(0);
+  const[maxAttemted,setMaxAttempted]=useState<any>();
+  const[solved,setSolved]=useState();
+  const[tried,setTried]=useState();
+  const[averageAttempted,setAverageAttempted]=useState<any>();
+  const[solvedWithOneSubmission,setSolvedWithOneSubmission]=useState<any>();
+  const[mxAc,setMxAc]=useState(1);
 
   //Fetching the data from API
   const fetchApiFromUserStatus = () => {
@@ -60,6 +66,10 @@ function App() {
       let tagsArray=[""];
       let levelsArray=[""];
       let ratingArray=[""];
+      let problemsArray=[""];
+      let solvedArray=[""];
+      
+
 
       for (let i = 0; i < resultLength; i++){
         programmingLanguages=[...programmingLanguages,res.data.result[i].programmingLanguage];
@@ -67,8 +77,35 @@ function App() {
         tagsArray=[...tagsArray,...res.data.result[i].problem.tags];
         levelsArray=[...levelsArray,res.data.result[i].problem.index];
         ratingArray=[...ratingArray,res.data.result[i].problem.rating];
-
+        problemsArray=[...problemsArray,res.data.result[i].problem.contestId.toString()+res.data.result[i].problem.index];
+        if(res.data.result[i].verdict==="OK"){
+          solvedArray=[...solvedArray,res.data.result[i].problem.contestId.toString()+res.data.result[i].problem.index]
+        }
       }
+
+      const dataMap = problemsArray.reduce((accumualtor:any, entry:any) => accumualtor.set(entry, (accumualtor.get(entry) || 0) + 1), new Map());
+      const solvedArrayMap = solvedArray.reduce((accumualtor:any, entry:any) => accumualtor.set(entry, (accumualtor.get(entry) || 0) + 1), new Map());
+      let mxAttempted=0;
+      let sumAttempted=0;
+      let with1=0;
+      dataMap.forEach(function(value:any, key:any){
+        if(key!==""){
+          mxAttempted=Math.max(mxAttempted,value);
+          sumAttempted+=value;
+          if(value==1){
+            with1++;
+          }
+        }
+      })
+      setTried(dataMap.size);
+      setSolved(solvedArrayMap.size);
+      let p=sumAttempted*1.0/resultLength;
+      setAverageAttempted(p);
+      setMaxAttempted(mxAttempted);
+      setSolvedWithOneSubmission(with1);
+
+
+
 
 
       function fetchData(data:any):any{
@@ -169,8 +206,7 @@ function App() {
       <div className="shadow-lg p-3 mb-5 bg-white rounded">
           <Piechart data={tags} cx={300} cy={300} width={800} height={600} outerRadius={280} innerRadius={150} handle={handle} label="Tags of "/>
       </div>
-      </div>
-      
+      </div>   
       
       
     </div>
@@ -185,9 +221,9 @@ function App() {
         </div>
     </div>
     <div className="d-flex justify-content-around">
-    <Table H1={"Contests of"} handle={handle} r2l={"Number of Contests"} r2r={numberofContestsAttended} r3l={"Best rank"} r3r={bestRank} r4l={"Worst rank"} r4r={worstRank} r5l={"Max Up"} r5r={maxUp} r6l={"Max Down"} r6r={maxDown} />
+    <Table H1={"Contests of"} handle={handle} r2l={"Number of Contests"} r2r={numberofContestsAttended} r3l={"Best rank"} r3r={worstRank} r4l={"Worst rank"} r4r={bestRank} r5l={"Max Up"} r5r={maxUp} r6l={"Max Down"} r6r={maxDown} r7l={""} r7r={""} />
+    <Table H1={"Some Numbers about"} handle={handle} r2l={"Tried"} r2r={tried} r3l={"Solved"} r3r={solved} r4l={"Average attempts"} r4r={averageAttempted} r5l={"Max attempts"} r5r={maxAttemted} r6l={"Solved with one submission"} r6r={solvedWithOneSubmission} r7l={"Max AC(s)"} r7r={mxAc} />
     </div>
-    
     </>
   );
 }

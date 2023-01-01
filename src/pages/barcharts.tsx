@@ -16,8 +16,8 @@ export default function Barchart(props:any) {
     <div>
       <h5>{props.label} {props.handle}</h5>
       <BarChart
-      width={500}
-      height={300}
+      width={600}
+      height={350}
       data={props.data}
       margin={{
         top: 5,
